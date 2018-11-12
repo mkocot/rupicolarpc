@@ -15,6 +15,7 @@ type rpcResponse struct {
 	dst      *json.Encoder
 	dataSent bool
 	buffer   *bytes.Buffer
+	prevErr  error
 }
 
 func newRPCResponse(w io.Writer) rpcResponserPriv {
@@ -69,8 +70,9 @@ func (b *rpcResponse) SetResponseError(e error) error {
 		return nil
 	}
 	if b.resultSet {
-		log.Debug("result already set (error)")
+		log.Debug("change error", "previous", b.prevErr, "now", e)
 	}
+	b.prevErr = e
 	b.resultSet = true
 	b.buffer.Reset()
 	return b.dst.Encode(NewError(e, b.id))
